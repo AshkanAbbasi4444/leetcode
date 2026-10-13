@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Max Product Difference</title>
+<style>
+:root{
+  --bg:#F4F1EA;--surface:#FFFFFF;--surface2:#FAF8F3;--ink:#1F1D1A;--mute:#76716A;--faint:#ABA59A;--line:#E2DDD2;
+  --big:#5847D6;--big-soft:#EFECFF;--big-line:#CFC8F6;
+  --sml:#0B8276;--sml-soft:#E1F3F0;--sml-line:#A8D9D2;
+  --chg:#E2580E;--chg-soft:#FFE7D6;--chg-ink:#9E3C05;
+  --kw:#B4236B;--num:#2F6FB5;
+  --shadow:0 1px 2px rgba(40,30,15,.05),0 6px 24px rgba(40,30,15,.07);
+  --z:1;color-scheme:light
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121315;--surface:#1B1D20;--surface2:#16181A;--ink:#ECE9E2;--mute:#9C978E;--faint:#6A665F;--line:#2D3035;
+  --big:#A79BFF;--big-soft:#25224A;--big-line:#433C85;
+  --sml:#4FD6C4;--sml-soft:#10302C;--sml-line:#1F5B53;
+  --chg:#FF8B4A;--chg-soft:#3B2213;--chg-ink:#FFB68A;
+  --kw:#F47AB8;--num:#7DB4F0;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121315;--surface:#1B1D20;--surface2:#16181A;--ink:#ECE9E2;--mute:#9C978E;--faint:#6A665F;--line:#2D3035;
+  --big:#A79BFF;--big-soft:#25224A;--big-line:#433C85;
+  --sml:#4FD6C4;--sml-soft:#10302C;--sml-line:#1F5B53;
+  --chg:#FF8B4A;--chg-soft:#3B2213;--chg-ink:#FFB68A;
+  --kw:#F47AB8;--num:#7DB4F0;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35);color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 ui-sans-serif,"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+.mono,code{font-family:ui-monospace,"JetBrains Mono","SF Mono",SFMono-Regular,Menlo,Consolas,monospace}
+.serif{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Charter,Georgia,serif}
+button{font:inherit;color:inherit}
+
+/* ---------- sticky head: title, controls, timeline ---------- */
+.head{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.hd{display:flex;align-items:center;gap:12px 20px;padding:10px 20px 6px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;flex:1;min-width:240px}
+.pid{font-size:12px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--ink);color:var(--bg);letter-spacing:.02em}
+.pt{font-size:18px;font-weight:600;line-height:1.15;letter-spacing:-.005em}
+.st{font-size:13px;color:var(--mute);font-variant-numeric:tabular-nums}
+.st b{color:var(--ink);font-weight:600}
+.ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.btn{height:32px;min-width:32px;padding:0 10px;border:1px solid var(--line);background:var(--surface);border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13px;transition:background .12s,border-color .12s}
+.btn:hover{border-color:var(--faint)}
+.btn:focus-visible,.tk:focus-visible{outline:2px solid var(--big);outline-offset:2px}
+.btn.pri{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.rp{background:var(--chg-soft);border-color:var(--chg);color:var(--chg-ink)}
+.btn.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg .btn{border:0;border-radius:0;height:30px}
+.seg .btn+.btn{border-left:1px solid var(--line)}
+.zv{font-size:12px;color:var(--mute);min-width:40px;text-align:center;font-variant-numeric:tabular-nums}
+.sep{width:1px;height:20px;background:var(--line);margin:0 2px}
+
+.tl{display:flex;align-items:flex-end;gap:10px;padding:2px 20px 10px;overflow-x:auto;scrollbar-width:none}
+.tl::-webkit-scrollbar{display:none}
+.tg{display:flex;flex-direction:column;gap:4px;flex:0 0 auto}
+.tgl{font-size:11px;color:var(--mute);line-height:1;white-space:nowrap}
+.tgl b{color:var(--ink);font-weight:600}
+.tgs{display:flex;gap:3px}
+.tk{width:30px;height:8px;border:0;border-radius:4px;padding:0;cursor:pointer;background:var(--line);transition:transform .15s,background .15s}
+.tk:hover{transform:scaleY(1.5)}
+.tk.k-cover{width:14px}
+.tk.k-big.done{background:color-mix(in srgb,var(--big) 45%,var(--line))}
+.tk.k-small.done{background:color-mix(in srgb,var(--sml) 45%,var(--line))}
+.tk.k-init.done,.tk.k-cover.done{background:var(--faint)}
+.tk.cur{transform:scaleY(1.6)}
+.tk.k-big.cur{background:var(--big)}.tk.k-small.cur{background:var(--sml)}
+.tk.k-init.cur,.tk.k-ret.cur,.tk.k-cover.cur{background:var(--ink)}
+.tlk{margin-left:auto;font-size:11px;color:var(--mute);display:flex;gap:12px;align-items:center;white-space:nowrap;flex:0 0 auto;padding-bottom:1px}
+.tlk i{display:inline-block;width:10px;height:6px;border-radius:3px;margin-right:5px;vertical-align:middle}
+
+/* ---------- stage: code rail + picture ---------- */
+.stage{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;padding:18px 20px 28px;max-width:1500px;margin:0 auto}
+.stage.code-open{grid-template-columns:minmax(300px,420px) minmax(0,1fr)}
+.stage:not(.code-open) .rail{display:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+.rail{align-self:start;position:sticky;top:var(--headh,110px);overflow:hidden}
+.chd{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);font-size:12px;color:var(--mute)}
+.chd .dots{display:flex;gap:5px}.chd .dots i{width:9px;height:9px;border-radius:50%;background:var(--line)}
+.code{padding:8px 0;font-size:12.5px;line-height:1.75;overflow-x:auto}
+.cl{display:flex;align-items:center;white-space:pre;padding:0 12px 0 0;border-left:3px solid transparent;min-height:22px}
+.cl .ln{width:34px;flex:0 0 34px;text-align:right;padding-right:12px;color:var(--faint);user-select:none}
+.cl .tx{flex:1 0 auto}
+.cl.hot{background:color-mix(in srgb,var(--acc,var(--ink)) 9%,transparent);border-left-color:var(--acc,var(--ink))}
+.cl.hot .ln{color:var(--acc,var(--ink));font-weight:600}
+.cl.cold .tx{opacity:.45}
+.code.big{--acc:var(--big)}.code.small{--acc:var(--sml)}
+.kw{color:var(--kw)}.nu{color:var(--num)}
+.an{margin-left:12px;font-size:11px;padding:1px 7px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);color:var(--mute);white-space:nowrap}
+.an.ok{color:var(--ink);border-color:var(--acc,var(--ink))}
+.an.no{color:var(--faint);border-style:dashed}
+.an.w{background:var(--chg-soft);border-color:var(--chg);color:var(--chg-ink)}
+.cx{padding:10px 14px 12px;border-top:1px solid var(--line);font-size:12px;color:var(--mute)}
+
+.main{min-width:0;display:flex;flex-direction:column;gap:14px}
+.nr{padding:0}
+.nr summary{list-style:none;cursor:pointer;display:flex;gap:12px;align-items:center;padding:12px 16px;flex-wrap:wrap}
+.nr summary::-webkit-details-marker{display:none}
+.chev{margin-left:auto;color:var(--mute);transition:transform .15s;font-size:12px}
+.nr[open] .chev{transform:rotate(180deg)}
+.badge{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);white-space:nowrap}
+.badge.big{background:var(--big-soft);border-color:var(--big-line);color:var(--big)}
+.badge.small{background:var(--sml-soft);border-color:var(--sml-line);color:var(--sml)}
+.badge.ret{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.eng{font-size:17px;line-height:1.35;flex:1;min-width:200px}
+.nrb{padding:0 16px 14px;display:grid;gap:8px;max-width:860px}
+.plain{margin:0}
+.plain b{font-weight:650}
+.note{margin:0;font-size:13.5px;color:var(--mute);padding:8px 12px;border-radius:8px;background:var(--surface2);border:1px dashed var(--line)}
+.plain code,.note code{font-size:.92em}
+
+.pic{overflow-x:auto;padding:14px}
+.pic svg{display:block;width:calc(var(--z)*100%);min-width:calc(var(--z)*640px);height:auto;margin:0 auto}
+
+/* ---------- svg ---------- */
+svg text{fill:var(--ink)}
+.nm{font-size:13px;fill:var(--mute)}
+.rk{font-size:11px;fill:var(--faint);letter-spacing:.04em}
+.val{font-size:30px;font-weight:700}
+.addr{font-size:11px;fill:var(--faint)}
+.lbl{font-size:13px;fill:var(--mute);letter-spacing:.12em;font-weight:600}
+.cell rect{fill:var(--surface);stroke:var(--line);stroke-width:1.5}
+.cell .val{font-size:24px}
+.cell.on rect{stroke-width:2.5}
+.cell.on.big rect{fill:var(--big-soft);stroke:var(--big)}
+.cell.on.small rect{fill:var(--sml-soft);stroke:var(--sml)}
+.cell.past .val{fill:var(--mute)}
+.gp.big{fill:var(--big-soft);stroke:var(--big-line)}
+.gp.small{fill:var(--sml-soft);stroke:var(--sml-line)}
+.gt.big{fill:var(--big)}.gt.small{fill:var(--sml)}
+.halo{paint-order:stroke;stroke-width:8px;stroke-linejoin:round}
+.halo.big{stroke:var(--big-soft)}.halo.small{stroke:var(--sml-soft)}
+.box rect{fill:var(--surface);stroke:var(--line);stroke-width:1.5}
+.box{cursor:pointer}
+.box:hover rect{stroke:var(--faint)}
+.box.read rect{stroke:var(--ink);stroke-width:2.5}
+.box.chg rect,.ip.chg rect{fill:var(--chg-soft);stroke:var(--chg);stroke-width:2.5}
+.box.chg .val,.ip.chg text{fill:var(--chg-ink)}
+.ip rect{stroke-width:1.5}
+.ip.big rect{fill:var(--big);stroke:var(--big)}.ip.small rect{fill:var(--sml);stroke:var(--sml)}
+.ip.big text,.ip.small text{fill:var(--surface)}
+.ip.big path{fill:var(--big)}.ip.small path{fill:var(--sml)}
+.ip.chg path{fill:var(--chg)}
+.pill rect{fill:var(--surface);stroke:var(--line)}
+.pill text{font-size:13px}
+.pill.ok.big rect{stroke:var(--big)}.pill.ok.small rect{stroke:var(--sml)}
+.pill.no text{fill:var(--mute)}
+.prod{font-size:15px}
+.prod tspan.b{font-weight:700}
+.pnl{font-size:14px;fill:var(--mute)}
+.ansp rect{fill:var(--surface);stroke:var(--line);stroke-width:1.5}
+.ansp text{font-size:15px}
+.ansp .k{fill:var(--mute);font-size:13px}
+.ansp.chg rect{fill:var(--chg-soft);stroke:var(--chg)}
+.ansp.chg text{fill:var(--chg-ink)}
+.ansp.fin rect{fill:var(--ink);stroke:var(--ink)}
+.ansp.fin text{fill:var(--bg)}
+.ar{stroke:var(--chg);stroke-width:2;fill:none}
+.ahp{fill:var(--chg)}
+.alb{font-size:12px;fill:var(--chg-ink)}
+.alb-bg{fill:var(--surface);stroke:var(--chg);stroke-width:1}
+.dim{opacity:.22}
+.fly{animation:fly .75s cubic-bezier(.3,.7,.3,1) both}
+@keyframes fly{from{transform:translate(var(--dx),var(--dy))}to{transform:translate(0,0)}}
+.gone{animation:gone .15s both}
+@keyframes gone{to{opacity:0}}
+.pop{animation:pop .5s both}
+@keyframes pop{from{opacity:0}to{opacity:1}}
+.draw{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:draw .5s ease-out both}
+@keyframes draw{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){.fly,.gone,.pop,.draw{animation:none!important;stroke-dashoffset:0}.gone{opacity:0}}
+
+/* ---------- memory view ---------- */
+.lit{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;padding:4px;align-items:start}
+.lit table{border-collapse:collapse;width:100%;font-size:14px}
+.lit caption{text-align:left;padding:0 0 8px;font-size:12px;letter-spacing:.12em;font-weight:600;color:var(--mute)}
+.lit th{text-align:left;font-size:11px;color:var(--faint);font-weight:500;padding:6px 12px;border-bottom:1px solid var(--line);letter-spacing:.06em;text-transform:uppercase}
+.lit td{padding:8px 12px;border-bottom:1px solid var(--line)}
+.lit tr:last-child td{border-bottom:0}
+.lit tr.chg td{background:var(--chg-soft);color:var(--chg-ink)}
+.lit tr.read td{font-weight:700}
+.lit tr.read td:first-child{box-shadow:inset 3px 0 0 var(--ink)}
+.lit tr.dim{opacity:.22}
+.lit tr.clk{cursor:pointer}
+.lit s{color:var(--mute);margin-right:8px}
+.litp{text-align:center;color:var(--mute);font-size:14px;margin:16px 0 4px}
+
+/* ---------- cover ---------- */
+.cover{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;padding:28px 28px 32px;max-width:860px}
+.cover h1{font-size:40px;line-height:1.05;margin:0;font-weight:600;letter-spacing:-.01em}
+.cover .lede{font-size:17px;margin:0;color:var(--ink);max-width:640px}
+.cover .ex{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.cover .ex span{font-size:20px;font-weight:700;width:46px;height:46px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--line)}
+.cover .ex span.hb{background:var(--big-soft);border-color:var(--big-line);color:var(--big)}
+.cover .ex span.hs{background:var(--sml-soft);border-color:var(--sml-line);color:var(--sml)}
+.cover .ex em{font-style:normal;color:var(--mute);font-size:14px;margin-left:8px}
+.cover .go{justify-self:start;height:42px;padding:0 18px;font-size:15px;border-radius:10px}
+.keys{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--mute)}
+.keys kbd{font-family:inherit;font-size:11px;padding:1px 6px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;background:var(--surface);color:var(--ink);margin-right:3px}
+
+/* ---------- trace popover ---------- */
+#detail{position:fixed;right:20px;bottom:20px;width:min(400px,calc(100vw - 32px));z-index:20;padding:16px 18px;display:none}
+#detail.show{display:block;animation:pop .2s both}
+#detail h3{margin:0 0 10px;font-size:14px;padding-right:24px}
+#detail ol{margin:0;padding-left:20px;display:grid;gap:6px;font-size:13px}
+#detail a{color:var(--big);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+#detail .x{position:absolute;top:10px;right:10px;cursor:pointer;color:var(--mute);border:0;background:none;font-size:16px;width:28px;height:28px;border-radius:6px}
+#detail .x:hover{background:var(--surface2)}
+
+@media (max-width:900px){
+  .stage.code-open{grid-template-columns:minmax(0,1fr)}
+  .rail{position:static;order:2}
+  .hd,.tl{padding-left:16px;padding-right:16px}
+  .stage{padding:14px 16px 24px}
+  .tlk{display:none}
+  .cover h1{font-size:30px}
+  .cover{padding:20px}
+}
+@media (max-width:560px){
+  .hide-sm,.sep{display:none}
+  .seg .btn{padding:0 9px;font-size:12.5px}
+  .eng{font-size:15.5px}
+  .pic{padding:8px}
+}
+</style></head><body>
+<div class="head" id="head">
+  <div class="hd">
+    <div class="brand"><span class="pid mono">1913</span><div><div class="pt serif">Maximum Product Difference</div><div class="st" id="st"></div></div></div>
+    <div class="ctl" id="ctl"></div>
+  </div>
+  <nav class="tl" id="tl" aria-label="steps"></nav>
+</div>
+<div class="stage" id="stage">
+  <aside class="rail card" id="rail"></aside>
+  <section class="main"><div id="narr"></div><div class="card pic" id="pic"></div></section>
+</div>
+<div id="detail" class="card" role="dialog"></div>
+<script>
+const NUMS=[5,6,2,7,4];
+const V=['big1','big2','small1','small2'];
+const CODE=["int maxProductDifference(int* nums, int numsSize) {","  int big1 = 0;","  int big2 = 0;","  int small1 = 10001;","  int small2 = 10001;","","  for (int i = 0; i < numsSize; i++) {","    if (nums[i] > big1) {","      big2 = big1;","      big1 = nums[i];","    } else if (nums[i] > big2) {","      big2 = nums[i];","    }","","    if (nums[i] < small1) {","      small2 = small1;","      small1 = nums[i];","    } else if (nums[i] < small2) {","      small2 = nums[i];","    }","  }","","  return big1 * big2 - small1 * small2;","}"];
+const LINES={init:[2,3,4,5],b1:[7,8,9,10],b2:[7,8,11,12],bn:[7,8,11],s1:[15,16,17],s2:[15,18,19],sn:[15,18],ret:[23]};
+const CHK_LINE={big1:8,big2:11,small1:15,small2:18};
+const MOVE_LINE={'big1>big2':9,'x>big1':10,'x>big2':12,'small1>small2':16,'x>small1':17,'x>small2':19};
+
+/* ---------- build pages by actually running the algorithm ---------- */
+const P=[];
+let st={big1:'?',big2:'?',small1:'?',small2:'?',i:'—'},prev;
+P.push({kind:'cover',prev:st,st,checks:[],moves:[],br:'cover'});
+prev=st;st={...st,big1:0,big2:0,small1:10001,small2:10001};
+P.push({kind:'init',prev,st,checks:[],moves:V.map(v=>['init',v]),br:'init'});
+NUMS.forEach((x,i)=>{
+  prev=st;st={...st,i};
+  let checks,moves=[],br;
+  if(x>st.big1){checks=[[x,'>','big1',st.big1,true]];moves=[['big1','big2'],['x','big1']];st={...st,big2:st.big1,big1:x};br='b1'}
+  else if(x>st.big2){checks=[[x,'>','big1',st.big1,false],[x,'>','big2',st.big2,true]];moves=[['x','big2']];st={...st,big2:x};br='b2'}
+  else{checks=[[x,'>','big1',st.big1,false],[x,'>','big2',st.big2,false]];br='bn'}
+  P.push({kind:'big',i,x,prev,st,checks,moves,br});
+  prev=st;
+  if(x<st.small1){checks=[[x,'<','small1',st.small1,true]];moves=[['small1','small2'],['x','small1']];st={...st,small2:st.small1,small1:x};br='s1'}
+  else if(x<st.small2){checks=[[x,'<','small1',st.small1,false],[x,'<','small2',st.small2,true]];moves=[['x','small2']];st={...st,small2:x};br='s2'}
+  else{checks=[[x,'<','small1',st.small1,false],[x,'<','small2',st.small2,false]];moves=[];br='sn'}
+  P.push({kind:'small',i,x,prev,st,checks,moves,br});
+});
+P.push({kind:'ret',prev:st,st,checks:[],moves:[],br:'ret'});
+
+/* ---------- derived facts ---------- */
+const changed=p=>new Set([...['big1','big2','small1','small2','i'].filter(k=>p.prev[k]!==p.st[k]),...p.moves.map(m=>m[1])]);
+function read(p){
+  const r=new Set();
+  p.checks.forEach(c=>r.add(c[2]));
+  p.moves.forEach(m=>{if(V.includes(m[0]))r.add(m[0])});
+  if(p.kind==='ret')V.forEach(v=>r.add(v));
+  return r;
+}
+const ans=s=>s.big1*s.big2-s.small1*s.small2;
+const ready=s=>typeof s.big1==='number'&&s.big2>0&&s.small2<10001;
+const side=p=>p.kind==='big'?'big':p.kind==='small'?'small':p.kind;
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* ---------- prose ---------- */
+function prose(p){
+  const s=p.st,q=p.prev,x=p.x;
+  const T={
+    init:['Set the starting values','setup','starting values','Fill every spot with a value that is guaranteed to lose.',
+      `<b>big1</b>, <b>big2</b> start at <b>0</b>; <b>small1</b>, <b>small2</b> start at <b>10001</b>.`,
+      `Every number is between 1 and 10⁴: anything beats 0 in a <code>&gt;</code> check, and anything beats 10001 in a <code>&lt;</code> check.`],
+    b1:[`nums[${p.i}] = ${x} · big check`,`loop i = ${p.i}`,'branch 1 → new big1','New champion: the old champion drops to second place.',
+      `<b>${x} &gt; big1 (${q.big1})</b> → yes. Old big1 <b>${q.big1}</b> is copied down to big2, then <b>${x}</b> becomes big1.`,
+      `Order matters: <b>copy down first</b>, then write the new value. The other way round, the old big1 would be lost.`],
+    b2:[`nums[${p.i}] = ${x} · big check`,`loop i = ${p.i}`,'branch 2 → new big2','Not the best, but it beats second place, so it takes second place.',
+      `${x} &gt; big1 (${q.big1})? no. <b>${x} &gt; big2 (${q.big2})</b>? yes → <b>${x}</b> becomes big2.`,
+      `Only one line runs here. big1 is not touched.`],
+    bn:[`nums[${p.i}] = ${x} · big check`,`loop i = ${p.i}`,'no branch → skip','Not big enough for either spot, so ignore it.',
+      `${x} &gt; big1 (${q.big1})? no. ${x} &gt; big2 (${q.big2})? no → <b>nothing changes</b>.`,
+      `Both checks are false, so the if / else-if chain does nothing.`],
+    s1:[`nums[${p.i}] = ${x} · small check`,`loop i = ${p.i}`,'branch 1 → new small1','New smallest: the old smallest drops to second-smallest.',
+      `<b>${x} &lt; small1 (${q.small1})</b> → yes. Old small1 <b>${q.small1}</b> is copied down to small2, then <b>${x}</b> becomes small1.`,
+      `Same shifting as the big side, just with <code>&lt;</code> instead of <code>&gt;</code>.`],
+    s2:[`nums[${p.i}] = ${x} · small check`,`loop i = ${p.i}`,'branch 2 → new small2','Not the smallest, but it beats second-smallest, so it takes that spot.',
+      `${x} &lt; small1 (${q.small1})? no. <b>${x} &lt; small2 (${q.small2})</b>? yes → <b>${x}</b> becomes small2.`,
+      `Only one line runs here. small1 is not touched.`],
+    sn:[`nums[${p.i}] = ${x} · small check`,`loop i = ${p.i}`,'no branch → skip','Not small enough for either spot, so ignore it.',
+      `${x} &lt; small1 (${q.small1})? no. ${x} &lt; small2 (${q.small2})? no → <b>nothing changes</b>.`,
+      `Both checks are false, so the if / else-if chain does nothing.`],
+    ret:['Return the answer','result','return','Biggest pair multiplied, minus smallest pair multiplied.',
+      `<b>${s.big1} × ${s.big2} − ${s.small1} × ${s.small2}</b> = ${s.big1*s.big2} − ${s.small1*s.small2} = <b>${ans(s)}</b>`,
+      `Matches Example 1 (expected 34) ✅. One loop over the array: <b>O(n)</b> time, <b>O(1)</b> extra space — no sorting needed.`]
+  };
+  const [title,sec,badge,eng,plain,note]=T[p.br];
+  return {title,sec,badge,eng,plain,note};
+}
+function panelLine(p){
+  if(p.kind==='init')return 'Write 0 into big1, big2. Write 10001 into small1, small2.';
+  if(p.kind==='ret')return `return ${p.st.big1*p.st.big2} − ${p.st.small1*p.st.small2} = ${ans(p.st)}`;
+  const parts=p.checks.map(c=>`${c[0]} ${c[1]} ${c[3]}: ${c[4]?'true':'false'}.`);
+  p.moves.forEach(m=>parts.push(m[0]==='x'?`Copy nums[${p.i}] (${p.x}) into ${m[1]}.`:`Copy ${m[0]} (${p.prev[m[0]]}) into ${m[1]}.`));
+  if(!p.moves.length)parts.push('No writes.');
+  return parts.join(' ');
+}
+
+/* ---------- code rail: full listing, executed lines lit, live values inline ---------- */
+function annots(p){
+  const a={};
+  if(p.kind==='init')V.forEach((v,j)=>a[j+2]={t:`${v} = ${p.st[v]}`,c:'w'});
+  if(p.kind==='big'||p.kind==='small'){
+    a[7]={t:`i = ${p.i}`,c:p.kind==='big'?'w':''};
+    p.checks.forEach(c=>a[CHK_LINE[c[2]]]={t:`${c[0]} ${c[1]} ${c[3]} ${c[4]?'✓':'✗'}`,c:c[4]?'ok':'no'});
+    p.moves.forEach(m=>a[MOVE_LINE[m[0]+'>'+m[1]]]={t:`${m[1]} ← ${m[0]==='x'?p.x:p.prev[m[0]]}`,c:'w'});
+  }
+  if(p.kind==='ret')a[23]={t:`= ${ans(p.st)}`,c:'ok'};
+  return a;
+}
+const hl=t=>esc(t).replace(/\b(int|for|if|else|return)\b|\b(\d+)\b/g,(m,k,n)=>k?`<span class="kw">${k}</span>`:`<span class="nu">${n}</span>`);
+function railHtml(p){
+  const cover=p.kind==='cover',hot=new Set(cover?[]:LINES[p.br]),an=cover?{}:annots(p);
+  const loop=p.kind==='big'||p.kind==='small';
+  const block=p.kind==='big'?[8,13]:p.kind==='small'?[15,20]:null;
+  const lines=CODE.map((t,i)=>{
+    const n=i+1,a=an[n],cold=block&&n>=block[0]&&n<=block[1]&&!hot.has(n);
+    return `<div class="cl${hot.has(n)?' hot':''}${cold?' cold':''}"><span class="ln">${n}</span><span class="tx">${hl(t)}</span>${a?`<span class="an ${a.c}">${esc(a.t)}</span>`:''}</div>`;
+  }).join('');
+  const foot=cover?'Lit lines run on the current step; pills show the values they saw.':loop?`Executed on this step: lines ${LINES[p.br].join(', ')}.`:`Executed: line${LINES[p.br].length>1?'s':''} ${LINES[p.br].join(', ')}.`;
+  return `<div class="chd mono"><span class="dots"><i></i><i></i><i></i></span><span>solution.c</span><span>C</span></div><div class="code mono ${p.kind==='big'||p.kind==='small'?p.kind:''}">${lines}</div><div class="cx">${foot}</div>`;
+}
+
+/* ---------- model view (SVG) ---------- */
+const W=1000,H=470,CW=92,CH=62;
+const CX=k=>300+k*110;
+const BOX={big1:{x:60,y:248},big2:{x:280,y:248},small1:{x:560,y:248},small2:{x:780,y:248}};
+const RANK={big1:'1st',big2:'2nd',small1:'1st',small2:'2nd'};
+const BW=160,BH=84,GY=196,GH=200,GW=440;
+const GRP=[['big','TOP TWO',30,['big1','big2']],['small','BOTTOM TWO',530,['small1','small2']]];
+function svgModel(p){
+  const ch=changed(p),rd=read(p),focus=ch.size+rd.size>0;
+  const loop=p.kind==='big'||p.kind==='small',sd=side(p);
+  const delay=k=>(0.15+k*0.85).toFixed(2);
+  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="memory picture">`;
+  s+=`<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ahp" d="M0,0 L10,5 L0,10 z"/></marker></defs>`;
+  // array
+  s+=`<text x="${CX(0)-CW/2-18}" y="78" text-anchor="end" class="lbl mono">nums</text>`;
+  NUMS.forEach((v,k)=>{
+    const act=loop&&p.i===k,past=loop?k<p.i:p.kind==='ret',x=CX(k)-CW/2;
+    s+=`<g class="cell${act?' on '+sd:(focus?' dim':'')}${past&&!act?' past':''}"><text x="${CX(k)}" y="32" text-anchor="middle" class="nm mono">[${k}]</text>`+
+       `<rect x="${x}" y="40" width="${CW}" height="${CH}" rx="10"/><text x="${CX(k)}" y="80" text-anchor="middle" class="val mono">${v}</text>`+
+       `<text x="${CX(k)}" y="118" text-anchor="middle" class="addr mono">0x${(0x100+4*k).toString(16)}</text></g>`;
+  });
+  if(loop){
+    const c=ch.has('i'),cx=CX(p.i);
+    s+=`<g class="ip ${sd}${c?' chg':''}"><path d="M${cx-6},134 L${cx},126 L${cx+6},134 z"/><rect x="${cx-36}" y="134" width="72" height="26" rx="13"/><text x="${cx}" y="152" text-anchor="middle" class="mono" style="font-size:14px;font-weight:700">i = ${p.i}</text></g>`;
+  }
+  // group panels (background)
+  GRP.forEach(([g,t,gx,vs])=>{
+    const gOn=vs.some(v=>ch.has(v)||rd.has(v))||!focus;
+    s+=`<rect class="gp ${g}${gOn?'':' dim'}" x="${gx}" y="${GY}" width="${GW}" height="${GH}" rx="16"/>`;
+  });
+  // arrows under boxes and pills
+  let labels='';
+  p.moves.forEach((m,mi)=>{
+    if(m[0]==='init')return;
+    const t=BOX[m[1]],d=delay(mi);
+    if(m[0]==='x'){
+      const x1=CX(p.i),y1=164,x2=t.x+BW/2,y2=t.y-6,len=Math.hypot(x2-x1,y2-y1).toFixed(0);
+      s+=`<line class="ar draw" style="--len:${len};animation-delay:${d}s" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" marker-end="url(#ah)"/>`;
+      const lab=`nums[${p.i}] (${p.x}) → ${m[1]}`,lw=lab.length*7.3+16;
+      const lx=Math.min(Math.max((x1+x2)/2-lw/2,6),W-lw-6),ly=168;
+      labels+=`<g class="pop" style="animation-delay:${d}s"><rect class="alb-bg" x="${lx.toFixed(1)}" y="${ly}" width="${lw.toFixed(1)}" height="22" rx="11"/><text x="${(lx+lw/2).toFixed(1)}" y="${ly+15}" text-anchor="middle" class="alb mono">${lab}</text></g>`;
+    }else{
+      const f=BOX[m[0]],y=f.y+BH/2;
+      s+=`<line class="ar draw" style="--len:${t.x-3-(f.x+BW+2)};animation-delay:${d}s" x1="${f.x+BW+2}" y1="${y}" x2="${t.x-3}" y2="${y}" marker-end="url(#ah)"/>`;
+      labels+=`<text x="${(f.x+BW+t.x)/2}" y="${f.y+BH+22}" text-anchor="middle" class="alb mono pop" style="animation-delay:${d}s">old ${m[0]} (${p.prev[m[0]]}) copied down</text>`;
+    }
+  });
+  // boxes
+  V.forEach(v=>{
+    const b=BOX[v],cls=ch.has(v)?'chg':rd.has(v)?'read':(focus?'dim':'');
+    const cx=b.x+BW/2,vy=b.y+64;
+    s+=`<g class="box ${cls}" data-var="${v}"><rect x="${b.x}" y="${b.y}" width="${BW}" height="${BH}" rx="12"/>`+
+       `<text x="${b.x+14}" y="${b.y+24}" class="nm mono">${v}</text><text x="${b.x+BW-14}" y="${b.y+24}" text-anchor="end" class="rk mono">${RANK[v]}</text>`;
+    const mi=p.moves.findIndex(m=>m[1]===v);
+    if(mi<0){s+=`<text x="${cx}" y="${vy}" text-anchor="middle" class="val mono">${p.st[v]}</text>`}
+    else{
+      const m=p.moves[mi],d=delay(mi);
+      if(m[0]==='init'){s+=`<text x="${cx}" y="${vy}" text-anchor="middle" class="val mono pop" style="animation-delay:${(0.15+V.indexOf(v)*0.25).toFixed(2)}s">${p.st[v]}</text>`}
+      else{
+        const sx=m[0]==='x'?CX(p.i):BOX[m[0]].x+BW/2, sy=m[0]==='x'?80:BOX[m[0]].y+64;
+        s+=`<text x="${cx}" y="${vy}" text-anchor="middle" class="val mono gone" style="animation-delay:${d}s">${p.prev[v]}</text>`;
+        s+=`<text x="${cx}" y="${vy}" text-anchor="middle" class="val mono fly" style="--dx:${sx-cx}px;--dy:${sy-vy}px;animation-delay:${d}s">${p.st[v]}</text>`;
+      }
+    }
+    s+=`</g>`;
+  });
+  // checks as pills, products
+  GRP.forEach(([g,t,gx,vs])=>{
+    const gOn=vs.some(v=>ch.has(v)||rd.has(v))||!focus;
+    s+=`<text x="${gx+22}" y="${GY+30}" class="lbl gt halo ${g} mono${gOn?'':' dim'}">${t}</text>`;
+    if(p.kind===g){
+      let rx=gx+GW-16;
+      p.checks.slice().reverse().forEach(c=>{
+        const txt=`${c[0]} ${esc(c[1])} ${c[3]} ${c[4]?'✓':'✗'}`,w=String(`${c[0]} ${c[1]} ${c[3]} x`).length*7.8+20;
+        rx-=w;
+        s+=`<g class="pill ${c[4]?'ok':'no'} ${g}"><rect x="${rx.toFixed(1)}" y="${GY+12}" width="${w.toFixed(1)}" height="26" rx="13"/><text x="${(rx+w/2).toFixed(1)}" y="${GY+30}" text-anchor="middle" class="mono">${txt}</text></g>`;
+        rx-=8;
+      });
+    }
+    const a=p.st[vs[0]],b=p.st[vs[1]];
+    s+=`<text x="${gx+GW/2}" y="${GY+GH-14}" text-anchor="middle" class="prod mono${gOn?'':' dim'}">${vs[0]} × ${vs[1]} = ${a} × ${b} = <tspan class="b">${typeof a==='number'?a*b:'?'}</tspan></text>`;
+  });
+  s+=labels;
+  // panel line + running answer
+  s+=`<text x="${W/2}" y="${GY+GH+28}" text-anchor="middle" class="pnl mono">${esc(panelLine(p))}</text>`;
+  const ok=ready(p.st),fin=p.kind==='ret';
+  const ansChg=!fin&&ok&&(!ready(p.prev)||ans(p.prev)!==ans(p.st));
+  const at=ok?`${p.st.big1*p.st.big2} − ${p.st.small1*p.st.small2} = ${ans(p.st)}`:'needs two numbers on each side';
+  const ak=fin?'answer':'answer if nums ended here';
+  const aw=(ak.length*7.2+at.length*8.6+44);
+  s+=`<g class="ansp${fin?' fin':ansChg?' chg':''}"><rect x="${(W/2-aw/2).toFixed(1)}" y="${H-38}" width="${aw.toFixed(1)}" height="32" rx="16"/><text x="${W/2}" y="${H-17}" text-anchor="middle" class="mono"><tspan class="k">${ak}</tspan>  <tspan font-weight="700">${at}</tspan></text></g>`;
+  return s+`</svg>`;
+}
+
+/* ---------- literal view (memory table) ---------- */
+const ADDR={nums:'0x7ffd0020',numsSize:'0x7ffd0028',big1:'0x7ffd002c',big2:'0x7ffd0030',small1:'0x7ffd0034',small2:'0x7ffd0038',i:'0x7ffd003c'};
+function litView(p){
+  const ch=changed(p),rd=read(p),focus=ch.size+rd.size>0,loop=p.kind==='big'||p.kind==='small';
+  let h=`<div class="lit"><table class="mono"><caption>HEAP · THE ARRAY</caption><tr><th>address</th><th>name</th><th>value</th></tr>`;
+  NUMS.forEach((v,k)=>{const act=loop&&p.i===k;h+=`<tr class="${act?'read':(focus?'dim':'')}"><td>0x${(0x100+4*k).toString(16)}</td><td>nums[${k}]</td><td>${v}</td></tr>`});
+  h+=`</table><table class="mono"><caption>STACK · maxProductDifference</caption><tr><th>address</th><th>name</th><th>value</th></tr>`;
+  [['nums','0x100'],['numsSize',NUMS.length]].forEach(([n,v])=>{h+=`<tr class="${focus?'dim':''}"><td>${ADDR[n]}</td><td>${n}</td><td>${v}</td></tr>`});
+  ['big1','big2','small1','small2','i'].forEach(n=>{
+    const c=ch.has(n),r=rd.has(n)||(n==='i'&&loop);
+    const cls=c?'chg':r?'read':(focus?'dim':'');
+    const val=c?`<s>${p.prev[n]}</s>${p.st[n]}`:p.st[n];
+    h+=`<tr class="${cls}${V.includes(n)?' clk':''}" data-var="${V.includes(n)?n:''}"><td>${ADDR[n]}</td><td>${n}</td><td>${val}</td></tr>`;
+  });
+  h+=`</table></div><p class="litp mono">${esc(panelLine(p))}</p>`;
+  return h;
+}
+
+/* ---------- click-to-explain: trace a value back to where it came from ---------- */
+function trace(v,at){
+  const out=[];let q=at,guard=0;
+  while(guard++<40){
+    let r=q;while(r>0&&!changed(P[r]).has(v))r--;
+    if(r<=0)break;
+    const m=P[r].moves.find(m=>m[1]===v);
+    if(!m)break;
+    if(m[0]==='init'){out.push([r,`${v} starts at ${P[r].st[v]}`]);break}
+    if(m[0]==='x'){out.push([r,`${v} = nums[${P[r].i}] = ${P[r].x}`]);break}
+    out.push([r,`${v} = ${m[0]} (${P[r].prev[m[0]]}) — copied down`]);
+    v=m[0];q=r-1;
+  }
+  return out;
+}
+
+/* ---------- head: step title, controls, timeline ---------- */
+function stHtml(k){
+  const p=P[k],N=P.length-1;
+  if(p.kind==='cover')return `<b>Cover</b> · ${N} steps · press → to start`;
+  const t=prose(p);
+  return `<b>${k} / ${N}</b> · ${t.title} <span class="hide-sm">· ${t.sec}</span>`;
+}
+function ctlHtml(){
+  return `<button class="btn" data-a="prev" title="Previous (←)" aria-label="previous">‹</button>`+
+    `<button class="btn ${S.timer?'on':'pri'}" data-a="play" title="Autoplay (space)" aria-label="autoplay">${S.timer?'❚❚':'▶'}<span class="hide-sm">${S.timer?'Pause':'Play'}</span></button>`+
+    `<button class="btn" data-a="next" title="Next (→)" aria-label="next">›</button><span class="sep"></span>`+
+    `<span class="seg"><button class="btn ${S.view==='model'?'on':''}" data-a="model" title="Diagram (v)">Diagram</button><button class="btn ${S.view==='lit'?'on':''}" data-a="lit" title="Memory (v)">Memory</button></span>`+
+    `<button class="btn rp" data-a="replay" title="Replay animation (r)">↻<span class="hide-sm">Replay</span></button><span class="sep hide-sm"></span>`+
+    `<button class="btn hide-sm" data-a="zo" title="Zoom out (−)">−</button><span class="zv hide-sm">${Math.round(S.z*100)}%</span><button class="btn hide-sm" data-a="zi" title="Zoom in (+)">+</button>`+
+    `<button class="btn ${S.code?'on':''}" data-a="code" title="Show code (c)" aria-label="toggle code">{ }</button>`+
+    `<button class="btn hide-sm" data-a="theme" title="Light / dark (t)" aria-label="toggle theme"><svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.5a6.5 6.5 0 0 1 0 13z" fill="currentColor"/></svg></button>`;
+}
+function tk(k){
+  const p=P[k],state=k<S.cur?'done':k===S.cur?'cur':'';
+  const ttl=p.kind==='cover'?'cover':`${k} · ${prose(p).title}`;
+  return `<button class="tk k-${p.kind} ${state}" data-go="${k}" title="${esc(ttl)}" aria-label="${esc(ttl)}"></button>`;
+}
+function tlHtml(){
+  let h=`<div class="tg"><span class="tgl">start</span><div class="tgs">${tk(0)}${tk(1)}</div></div>`;
+  NUMS.forEach((v,i)=>{
+    const kb=P.findIndex(p=>p.kind==='big'&&p.i===i);
+    h+=`<div class="tg"><span class="tgl mono">[${i}] <b>${v}</b></span><div class="tgs">${tk(kb)}${tk(kb+1)}</div></div>`;
+  });
+  h+=`<div class="tg"><span class="tgl">return</span><div class="tgs">${tk(P.length-1)}</div></div>`;
+  h+=`<div class="tlk"><span><i style="background:var(--big)"></i>big check</span><span><i style="background:var(--sml)"></i>small check</span><span><i style="background:var(--chg)"></i>changed this step</span></div>`;
+  return h;
+}
+function narrHtml(p){
+  const t=prose(p);
+  return `<details class="card nr" ${S.open?'open':''}><summary><span class="badge ${side(p)}">${t.badge}</span><span class="eng serif">${t.eng}</span><span class="chev">▾</span></summary><div class="nrb"><p class="plain">${t.plain}</p><p class="note">${t.note}</p></div></details>`;
+}
+function coverHtml(){
+  const N=NUMS.length;
+  const sorted=[...NUMS].sort((a,b)=>a-b);
+  return `<div class="cover"><h1 class="serif">Pick the two biggest, the two smallest, and subtract.</h1>`+
+    `<p class="lede">A step-by-step trace of the one-pass solution on <code class="mono">nums = [${NUMS.join(', ')}]</code>. Expected answer: <b>34</b>.</p>`+
+    `<div class="ex mono">${sorted.map((v,k)=>`<span class="${k<2?'hs':k>=N-2?'hb':''}">${v}</span>`).join('')}<em>sorted: (${sorted[N-1]}×${sorted[N-2]}) − (${sorted[0]}×${sorted[1]}) = ${sorted[N-1]*sorted[N-2]-sorted[0]*sorted[1]}</em></div>`+
+    `<p class="plain" style="color:var(--mute);max-width:640px">Sorting works but costs O(n log n). The trick: you only ever need four numbers, so keep a running <b style="color:var(--big)">top two</b> and <b style="color:var(--sml)">bottom two</b> in a single pass.</p>`+
+    `<button class="btn pri go" data-a="next">Start the trace →</button>`+
+    `<div class="keys"><span><kbd>←</kbd><kbd>→</kbd>step</span><span><kbd>space</kbd>autoplay</span><span><kbd>v</kbd>diagram / memory</span><span><kbd>r</kbd>replay</span><span><kbd>c</kbd>code</span><span><kbd>t</kbd>theme</span><span><kbd>+</kbd><kbd>−</kbd><kbd>0</kbd>zoom</span><span>click a box to trace where its value came from</span></div></div>`;
+}
+
+/* ---------- app ---------- */
+const S={cur:0,view:'model',z:1,open:true,code:true,timer:null,theme:null};
+try{const sv=JSON.parse(localStorage.getItem('mpd-deck-v2')||'{}');
+  if(sv.view)S.view=sv.view;if(typeof sv.open==='boolean')S.open=sv.open;if(typeof sv.code==='boolean')S.code=sv.code;if(sv.theme)S.theme=sv.theme}catch(e){}
+const save=()=>{try{localStorage.setItem('mpd-deck-v2',JSON.stringify({view:S.view,open:S.open,code:S.code,theme:S.theme}))}catch(e){}};
+const $=id=>document.getElementById(id);
+function drawPic(){
+  const p=P[S.cur];
+  $('pic').innerHTML=p.kind==='cover'?coverHtml():(S.view==='model'?svgModel(p):litView(p));
+}
+function render(){
+  const y=window.scrollY,p=P[S.cur];
+  $('st').innerHTML=stHtml(S.cur);
+  $('ctl').innerHTML=ctlHtml();
+  const tl=$('tl');tl.innerHTML=tlHtml();
+  const cur=tl.querySelector('.tk.cur');
+  if(cur&&tl.scrollWidth>tl.clientWidth)tl.scrollLeft=Math.max(0,cur.offsetLeft-tl.clientWidth/2);
+  $('stage').classList.toggle('code-open',S.code);
+  $('rail').innerHTML=railHtml(p);
+  $('narr').innerHTML=p.kind==='cover'?'':narrHtml(p);
+  const d=$('narr').querySelector('details');
+  if(d)d.addEventListener('toggle',e=>{S.open=e.target.open;save()});
+  drawPic();
+  hideDetail();
+  document.documentElement.style.setProperty('--headh',($('head').offsetHeight+16)+'px');
+  if(S.cur===0)window.scrollTo(0,0);else window.scrollTo(0,y);
+}
+function go(k){S.cur=Math.max(0,Math.min(P.length-1,k));if(S.timer&&S.cur===P.length-1)stop();render()}
+function stop(){clearInterval(S.timer);S.timer=null}
+function togglePlay(){
+  if(S.timer){stop();render();return}
+  if(S.cur>=P.length-1)S.cur=0;
+  S.timer=setInterval(()=>go(S.cur+1),2600);
+  go(S.cur+1);
+}
+function setZ(z){S.z=Math.max(.6,Math.min(4,Math.round(z*10)/10));document.documentElement.style.setProperty('--z',S.z);const e=document.querySelector('.zv');if(e)e.textContent=Math.round(S.z*100)+'%'}
+function setView(v){S.view=v;save();render()}
+function applyTheme(){if(S.theme)document.documentElement.dataset.theme=S.theme;else delete document.documentElement.dataset.theme}
+function toggleTheme(){
+  const dark=S.theme?S.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+  S.theme=dark?'light':'dark';applyTheme();save();
+}
+function hideDetail(){const d=$('detail');d.classList.remove('show');d.innerHTML=''}
+function showTrace(v){
+  if(P[S.cur].kind==='cover')return;
+  const t=trace(v,S.cur),d=$('detail');
+  d.innerHTML=`<button class="x" title="close">✕</button><h3 class="mono">${v} = ${P[S.cur].st[v]} — where did it come from?</h3><ol>`+
+    t.map(([r,txt])=>`<li class="mono">${txt} · <a data-go="${r}">step ${r}</a></li>`).join('')+`</ol>`;
+  d.classList.add('show');
+}
+if(typeof document!=='undefined'&&document.getElementById('tl')){
+  applyTheme();
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('[data-a]');
+    if(b){const a=b.dataset.a;
+      if(a==='prev'){stop();go(S.cur-1)}else if(a==='next')go(S.cur+1);
+      else if(a==='play')togglePlay();
+      else if(a==='model'||a==='lit')setView(a);
+      else if(a==='replay')drawPic();
+      else if(a==='zi')setZ(S.z+.2);else if(a==='zo')setZ(S.z-.2);
+      else if(a==='code'){S.code=!S.code;save();render()}
+      else if(a==='theme')toggleTheme();
+      return;}
+    const g=e.target.closest('[data-go]');if(g){stop();go(+g.dataset.go);return}
+    if(e.target.closest('#detail .x')){hideDetail();return}
+    const v=e.target.closest('[data-var]');if(v&&v.dataset.var)showTrace(v.dataset.var);
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.metaKey||e.ctrlKey||e.altKey)return;
+    if(e.target.closest&&e.target.closest('summary')&&(e.key===' '||e.key==='Enter'))return;
+    const k=e.key;
+    if(k==='ArrowRight')go(S.cur+1);else if(k==='ArrowLeft'){stop();go(S.cur-1)}
+    else if(k==='Home'){stop();go(0)}else if(k==='End'){stop();go(P.length-1)}
+    else if(k===' ')togglePlay();
+    else if(k==='v')setView(S.view==='model'?'lit':'model');
+    else if(k==='r')drawPic();
+    else if(k==='c'){S.code=!S.code;save();render()}
+    else if(k==='t')toggleTheme();
+    else if(k==='Escape')hideDetail();
+    else if(k==='+'||k==='=')setZ(S.z+.2);else if(k==='-')setZ(S.z-.2);else if(k==='0')setZ(1);
+    else return;
+    e.preventDefault();
+  });
+  render();
+}
+</script></body></html>
